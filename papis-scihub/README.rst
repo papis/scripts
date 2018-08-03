@@ -1,3 +1,6 @@
+.. image:: https://badge.fury.io/py/papis-scihub.svg
+    :target: https://badge.fury.io/py/papis-scihub
+
 Papis SCIHUB
 ============
 
