@@ -12,7 +12,9 @@ setup(
     license='GPLv3',
     url='https://github.com/papis/scripts/tree/master/papis-scihub',
     install_requires=[
-        "papis>=0.6",
+        "papis>=0.7",
+        "click",
+        "scihub>=0.0.1",
     ],
     classifiers=[
         'Environment :: Console',
