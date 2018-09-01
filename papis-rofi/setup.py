@@ -15,7 +15,7 @@ setup(
     url='https://github.com/papis/scripts/tree/master/papis-rofi',
     install_requires=[
         "papis>=0.7",
-        "papis-python-rofi>=1.0.1",
+        "papis-python-rofi>=1.0.2",
         "click",
     ],
     classifiers=[
