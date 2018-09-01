@@ -16,6 +16,7 @@ setup(
     install_requires=[
         "papis>=0.7",
         "papis-python-rofi>=1.0.1",
+        "click",
     ],
     classifiers=[
         'Environment :: Console',
