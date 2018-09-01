@@ -6,7 +6,7 @@ import papis.database
 from papis.commands.rm import run as rm
 from papis.commands.edit import run as edit
 from papis.commands.browse import run as browse
-from papis.commands.open import run as papis_open
+#from papis.commands.open import run as papis_open
 
 import logging
 logger = logging.getLogger("rofi")
@@ -15,6 +15,11 @@ import papis_rofi
 import papis_rofi.config
 
 papis_rofi.config.register_default_settings()
+
+
+def papis_open(document):
+    file_to_open = document.get_files()
+    papis.api.open_file(file_to_open, wait=False)
 
 
 def get_options():
@@ -78,7 +83,6 @@ class Gui(object):
 
     def __init__(self):
         # Set default picker
-        papis.config.set('picktool', 'rofi')
         self.db = papis.database.get()
         self.documents = []
         self.help_message = ""
