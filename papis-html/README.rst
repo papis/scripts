@@ -24,3 +24,10 @@ will get you a directory ``einstein-papers`` with a website inside.
 
 You can find an example in
 `here <https://papis.github.io/papis-html/einstein/>`_.
+
+Acknowledgements
+================
+
+This is a simple application of the very nice library
+`bibtex-js <https://github.com/pcooksey/bibtex-js>`_.
+
