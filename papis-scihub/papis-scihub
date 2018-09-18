@@ -11,6 +11,7 @@ import webbrowser
 import logging
 
 logger = logging.getLogger('papis:scihub')
+logging.basicConfig(filename="", level=logging.INFO)
 
 WARNING_NOTICE = '''\
 ----------------------------------------------------------------------------
@@ -55,6 +56,7 @@ def main(ctx, identifier, out):
       # Save the document in test.pdf
       papis scihub -o test.pdf https://doi.org/10.1016/j.physrep.2016.12.002
     """
+    global logger
     click.echo(WARNING_NOTICE)
     sh = scihub.SciHub()
     try:
@@ -76,6 +78,7 @@ def main(ctx, identifier, out):
         assert(res is not None)
         assert(res.get('url') is not None)
         assert(res.get('pdf') is not None)
+        logger.info('Writing file in: {0}'.format(out))
         with open(out, 'wb+') as fd:
             fd.write(res['pdf'])
 
@@ -92,7 +95,7 @@ def add(**kwargs):
     logger = logging.getLogger('papis:scihub:add')
     ctx = click.globals.get_current_context()
     kwargs['files'] = [ctx.obj['path']]
-    logger.info('files: '.format(kwargs['files']))
+    logger.info('files: {0}'.format(kwargs['files']))
     kwargs['from_doi'] = ctx.obj['identifier']
     papis_add_callback(**kwargs)
 
@@ -101,5 +104,3 @@ papis_add_cmd.callback = add
 
 if __name__ == "__main__":
     main()
-
-#vim-run: ./% 10.1002/andp.19053220607 add -d ssssssss --name photon_definition
