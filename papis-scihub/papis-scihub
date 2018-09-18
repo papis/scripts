@@ -89,8 +89,10 @@ papis_add_cmd = papis.commands.add.cli
 papis_add_callback = papis_add_cmd.callback
 main.add_command(papis_add_cmd, 'add')
 def add(**kwargs):
+    logger = logging.getLogger('papis:scihub:add')
     ctx = click.globals.get_current_context()
     kwargs['files'] = [ctx.obj['path']]
+    logger.info('files: '.format(kwargs['files']))
     kwargs['from_doi'] = ctx.obj['identifier']
     papis_add_callback(**kwargs)
 
