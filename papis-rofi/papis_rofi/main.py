@@ -209,7 +209,7 @@ class Gui(object):
 
 
 @click.command()
-@click.argument('query', nargs=1)
+@click.argument('query', nargs=1, default='')
 @click.help_option('--help', '-h')
 @click.version_option(version=papis_rofi.__version__)
 def main(query):
