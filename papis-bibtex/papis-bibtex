@@ -1,0 +1,151 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+import papis.api
+import papis.cli
+import papis.config
+import papis.utils
+import papis.commands.explore as explore
+import papis.commands.open
+import papis.commands.edit
+import papis.commands.browse
+import papis.commands.export
+import click
+import os
+
+
+papis.config.register_default_settings({'bibtex': {
+    'default-bibfile': ''
+}})
+
+
+@click.group(chain=True)
+@click.help_option('-h', '--help')
+@click.pass_context
+def main(ctx):
+    """A papis script to interact wit bibtex files"""
+    ctx.obj = {'documents': []}
+    bibfile = papis.config.get('default-bibfile', section='bibtex')
+    if bibfile and os.path.exists(bibfile):
+        explore.bibtex.callback(bibfile)
+
+
+main.add_command(explore.bibtex, 'read')
+main.add_command(explore.export, 'export')
+main.add_command(explore.yaml, 'yaml')
+main.add_command(explore.json, 'json')
+main.add_command(explore.pick, 'pick')
+main.add_command(explore.cmd, 'cmd')
+
+
+@main.command('add')
+@papis.cli.query_option()
+@click.help_option('-h', '--help')
+@click.option(
+    '-a', '--all', help='Add all searched documents', default=False,
+    is_flag=True
+)
+@click.pass_context
+def _add(ctx, query, all):
+    """Add a refrence to the bibtex file"""
+    docs = papis.api.get_documents_in_lib(search=query)
+    if not all:
+        docs = [papis.api.pick_doc(docs)]
+    ctx.obj['documents'].extend(docs)
+
+
+@main.command('update')
+@click.help_option('-h', '--help')
+@click.option(
+    '-a', '--all', show_default=True, help='update all searched documents',
+    default=False, is_flag=True
+)
+@click.option(
+    '--from', '-f', 'fromdb',
+    show_default=True,
+    help='Update the document from the library',
+    default=False, is_flag=True
+)
+@click.option(
+    '-t', '--to', help='Update the library document from retrieved document',
+    show_default=True,
+    default=False, is_flag=True
+)
+@click.pass_context
+def _update(ctx, all, fromdb, to):
+    """Update a refrence to the bibtex file"""
+    docs = click.get_current_context().obj['documents']
+    picked_doc = None
+    picked_index = -1
+    if not all:
+        picked_doc = papis.api.pick_doc(docs)
+        if picked_doc is None:
+            return
+        picked_index = list(map(lambda x: id(x), docs)).index(id(picked_doc))
+    for j, doc in enumerate(docs):
+        if not all:
+            if not j == picked_index:
+                continue
+        try:
+            libdoc = papis.utils.locate_document_in_lib(doc)
+        except IndexError as e:
+            print(e)
+        else:
+            if fromdb:
+                print('updating')
+                docs[j] = libdoc
+    click.get_current_context().obj['documents'] = docs
+
+
+@main.command('open')
+@click.help_option('-h', '--help')
+@click.pass_context
+def _open(ctx):
+    """Open a document in the documents list"""
+    docs = ctx.obj['documents']
+    doc = papis.api.pick_doc(docs)
+    if not doc:
+        return
+    doc = papis.utils.locate_document_in_lib(doc)
+    papis.commands.open.run(doc)
+
+
+@main.command('edit')
+@click.help_option('-h', '--help')
+@click.option(
+    '-l', '--lib',
+    show_default=True,
+    help='Edit document in papis library',
+    default=False, is_flag=True
+)
+@click.pass_context
+def _edit(ctx, lib):
+    """edit a document in the documents list"""
+    docs = ctx.obj['documents']
+    doc = papis.api.pick_doc(docs)
+    if not doc:
+        return
+    doc = papis.utils.locate_document_in_lib(doc)
+    papis.commands.edit.run(doc)
+
+
+@main.command('rm')
+@click.help_option('-h', '--help')
+@click.pass_context
+def _rm(ctx):
+    """Remove a document from the documents list"""
+    print('Sorry, TODO...')
+
+
+@main.command('save')
+@click.help_option('-h', '--help')
+@click.argument('bibfile', required=True, type=click.Path())
+@click.pass_context
+def _save(ctx, bibfile):
+    """Save the documents imported in bibtex format"""
+    docs = ctx.obj['documents']
+    with open(bibfile, 'w+') as fd:
+        fd.write(papis.commands.export.run(docs, bibtex=True))
+
+
+if __name__ == "__main__":
+    main()
