@@ -136,6 +136,24 @@ def _rm(ctx):
     print('Sorry, TODO...')
 
 
+@main.command('ref')
+@click.help_option('-h', '--help')
+@click.option('-o', '--out', help='Output ref to a file', default=None)
+@click.pass_context
+def _ref(ctx, out):
+    """Print the reference for a document"""
+    docs = ctx.obj['documents']
+    doc = papis.api.pick_doc(docs)
+    if not doc:
+        return
+    ref = doc["ref"]
+    if out:
+        with open(out, 'w+') as fd:
+            fd.write(ref)
+    else:
+        print(ref)
+
+
 @main.command('save')
 @click.help_option('-h', '--help')
 @click.argument('bibfile', required=True, type=click.Path())
