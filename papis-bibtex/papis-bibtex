@@ -1,31 +1,50 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import papis.api
 import papis.cli
-import papis.config
+from papis.cli import click
+import papis.config as config
 import papis.utils
 import papis.commands.explore as explore
 import papis.commands.open
 import papis.commands.edit
 import papis.commands.browse
 import papis.commands.export
-import click
-import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('papis:bibtex')
 
 
-papis.config.register_default_settings({'bibtex': {
-    'default-bibfile': ''
+config.register_default_settings({'bibtex': {
+    'default-read-bibfile': '',
+    'auto-read': '',
+    'default-save-bibfile': ''
 }})
 
 
 @click.group(chain=True)
 @click.help_option('-h', '--help')
+@click.option(
+    '--noar', '--no-auto-read',
+    default=False,
+    is_flag=True,
+    help="Do not auto read even if the configuration file says otherwise"
+)
 @click.pass_context
-def main(ctx):
+def main(ctx, no_auto_read):
     """A papis script to interact wit bibtex files"""
     ctx.obj = {'documents': []}
-    bibfile = papis.config.get('default-bibfile', section='bibtex')
-    if bibfile and os.path.exists(bibfile):
+
+    if no_auto_read:
+        logger.info('Setting auto-read to False')
+        config.set('auto-read', 'False', section='bibtex')
+
+    bibfile = config.get('default-read-bibfile', section='bibtex')
+    if (bool(config.getboolean('auto-read', section='bibtex')) and
+        bibfile and
+        os.path.exists(bibfile)):
         explore.bibtex.callback(bibfile)
 
 
@@ -156,12 +175,23 @@ def _ref(ctx, out):
 
 @main.command('save')
 @click.help_option('-h', '--help')
-@click.argument('bibfile', required=True, type=click.Path())
+@click.argument(
+    'bibfile',
+    default=lambda: config.get('default-save-bibfile', section='bibtex'),
+    required=True, type=click.Path()
+)
+@click.option('-f', '--force', default=False, is_flag=True)
 @click.pass_context
-def _save(ctx, bibfile):
+def _save(ctx, bibfile, force):
     """Save the documents imported in bibtex format"""
     docs = ctx.obj['documents']
+    if not force:
+        c = papis.utils.confirm('Are you sure you want to save?')
+        if not c:
+            print('Not saving..')
+            return
     with open(bibfile, 'w+') as fd:
+        logger.info('Saving {1} documents in {0}..'.format(bibfile, len(docs)))
         fd.write(papis.commands.export.run(docs, bibtex=True))
 
 
