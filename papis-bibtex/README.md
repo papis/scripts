@@ -32,3 +32,26 @@ papis bibtex          \
 ```
 
 Maybe this is also interesting for you guys!
+
+## Vim integration
+
+Right now, you can easily use it from vim with these simple lines
+
+```vimscript
+function! PapisBibtexRef()
+  let l:temp = tempname()
+  echom l:temp
+  silent exec "!papis bibtex ref -o ".l:temp
+  let l:olda = @a
+  let @a = join(readfile(l:temp), ',')
+  normal! "ap
+  redraw!
+  let @a = l:olda
+endfunction
+
+command! -nargs=0 BibRef call PapisBibtexRef()
+command! -nargs=0 BibOpen exec "!papis bibtex open"
+```
+
+And use like such:
+[![asciicast](https://asciinema.org/a/8KbLQJSVYVYNXHVF3wgcxx5Cp.svg)](https://asciinema.org/a/8KbLQJSVYVYNXHVF3wgcxx5Cp)
