@@ -12,6 +12,7 @@ import papis.commands.edit
 import papis.commands.browse
 import papis.commands.export
 import logging
+import colorama
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('papis:bibtex')
@@ -107,10 +108,16 @@ def _update(ctx, all, fromdb, to):
         try:
             libdoc = papis.utils.locate_document_in_lib(doc)
         except IndexError as e:
-            print(e)
+            logger.info(
+                '{c.Fore.YELLOW}{0}: {c.Back.RED}{doc.title}{c.Style.RESET_ALL}'
+                .format(e, doc=doc, c=colorama)
+            )
         else:
             if fromdb:
-                print('updating')
+                logger.info(
+                    'Updating {c.Fore.GREEN}{doc.title}{c.Style.RESET_ALL}'
+                    .format(doc=doc, c=colorama)
+                )
                 docs[j] = libdoc
     click.get_current_context().obj['documents'] = docs
 
@@ -192,7 +199,31 @@ def _save(ctx, bibfile, force):
             return
     with open(bibfile, 'w+') as fd:
         logger.info('Saving {1} documents in {0}..'.format(bibfile, len(docs)))
-        fd.write(papis.commands.export.run(docs, bibtex=True))
+        fd.write(papis.commands.export.run(docs, to_format='bibtex'))
+
+
+@main.command('sort')
+@click.help_option('-h', '--help')
+@click.option(
+    '-k', '--key',
+    help="Field to order it",
+    default=None,
+    type=str,
+    required=True
+)
+@click.option(
+    '-r', '--reverse',
+    help="Reverse the order",
+    default=False,
+    is_flag=True
+)
+@click.pass_context
+def _sort(ctx, key, reverse):
+    """Save the documents imported in bibtex format"""
+    docs = ctx.obj['documents']
+    ctx.obj['documents'] = list(
+        sorted(docs, key=lambda d: d[key], reverse=reverse)
+    )
 
 
 if __name__ == "__main__":
