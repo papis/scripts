@@ -14,7 +14,6 @@ import papis.commands.export
 import logging
 import colorama
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('papis:bibtex')
 
 
@@ -28,7 +27,7 @@ config.register_default_settings({'bibtex': {
 @click.group(chain=True)
 @click.help_option('-h', '--help')
 @click.option(
-    '--noar', '--no-auto-read',
+    '--noar', '--no-auto-read', 'no_auto_read',
     default=False,
     is_flag=True,
     help="Do not auto read even if the configuration file says otherwise"
@@ -224,7 +223,3 @@ def _sort(ctx, key, reverse):
     ctx.obj['documents'] = list(
         sorted(docs, key=lambda d: d[key], reverse=reverse)
     )
-
-
-if __name__ == "__main__":
-    main()
