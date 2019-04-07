@@ -23,6 +23,8 @@ config.register_default_settings({'bibtex': {
     'default-save-bibfile': ''
 }})
 
+explorer_mgr = explore.get_explorer_mgr()
+
 
 @click.group(chain=True)
 @click.help_option('-h', '--help')
@@ -35,6 +37,7 @@ config.register_default_settings({'bibtex': {
 @click.pass_context
 def main(ctx, no_auto_read):
     """A papis script to interact wit bibtex files"""
+    global explorer_mgr
     ctx.obj = {'documents': []}
 
     if no_auto_read:
@@ -45,15 +48,16 @@ def main(ctx, no_auto_read):
     if (bool(config.getboolean('auto-read', section='bibtex')) and
         bibfile and
         os.path.exists(bibfile)):
-        explore.bibtex.callback(bibfile)
+        logger.info("auto reading {0}".format(bibfile))
+        explorer_mgr['bibtex'].plugin.callback(bibfile)
 
 
-main.add_command(explore.bibtex, 'read')
-main.add_command(explore.export, 'export')
-main.add_command(explore.yaml, 'yaml')
-main.add_command(explore.json, 'json')
-main.add_command(explore.pick, 'pick')
-main.add_command(explore.cmd, 'cmd')
+main.add_command(explorer_mgr['bibtex'].plugin, 'read')
+main.add_command(explorer_mgr['export'].plugin, 'export')
+main.add_command(explorer_mgr['yaml'].plugin, 'yaml')
+main.add_command(explorer_mgr['json'].plugin, 'json')
+main.add_command(explorer_mgr['pick'].plugin, 'pick')
+main.add_command(explorer_mgr['cmd'].plugin, 'cmd')
 
 
 @main.command('add')
