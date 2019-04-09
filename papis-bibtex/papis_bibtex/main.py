@@ -112,14 +112,15 @@ def _update(ctx, all, fromdb, to):
             libdoc = papis.utils.locate_document_in_lib(doc)
         except IndexError as e:
             logger.info(
-                '{c.Fore.YELLOW}{0}: {c.Back.RED}{doc.title}{c.Style.RESET_ALL}'
-                .format(e, doc=doc, c=colorama)
+                '{c.Fore.YELLOW}{0}: \n\t{c.Back.RED}{doc: <80.80}{c.Style.RESET_ALL}'
+                .format(e, doc=papis.document.describe(doc), c=colorama)
             )
         else:
             if fromdb:
                 logger.info(
-                    'Updating {c.Fore.GREEN}{doc.title}{c.Style.RESET_ALL}'
-                    .format(doc=doc, c=colorama)
+                    'Updating \n\t'
+                    '{c.Fore.GREEN}{c.Back.BLACK}{doc: <80.80}{c.Style.RESET_ALL}'
+                    .format(doc=papis.document.describe(doc), c=colorama)
                 )
                 docs[j] = libdoc
     click.get_current_context().obj['documents'] = docs
