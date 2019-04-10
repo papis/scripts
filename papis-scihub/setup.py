@@ -12,7 +12,7 @@ setup(
     license='GPLv3',
     url='https://github.com/papis/scripts/tree/master/papis-scihub',
     install_requires=[
-        "papis>=0.7",
+        "papis",
         "click",
         "scihub>=0.0.1",
     ],
@@ -31,12 +31,19 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Topic :: Utilities',
     ],
-    description='Download papers from scihub using papis',
+    description='Scihub compatibility package for papis',
     long_description=long_description,
     keywords=[
         'papis', 'scihub', 'bibtex',
         'management', 'cli', 'biliography'
     ],
-    scripts=['papis-scihub'],
+    packages=[
+        "papis_scihub",
+    ],
+    entry_points={
+        'papis.importer': [
+            "scihub=papis_scihub.plugin:Importer",
+        ],
+    },
     platforms=['linux', 'osx'],
 )
