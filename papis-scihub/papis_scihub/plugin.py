@@ -5,6 +5,7 @@ import papis.crossref
 import tempfile
 import colorama
 import warnings
+import urllib.request
 
 
 WARNING_NOTICE = '''
@@ -45,7 +46,13 @@ class Importer(papis.importer.Importer):
             return Importer(uri=uri)
 
     def fetch(self):
-        doi = papis.doi.find_doi_in_text(self.uri) or self.uri
+        doi = (
+            papis.doi.find_doi_in_text(self.uri) or
+            papis.doi.find_doi_in_text(
+                urllib.request.urlopen(self.uri).read().decode('utf-8')
+            ) or
+            self.uri
+        )
         doi_imp = papis.importer.get_importer_by_name('doi').match(doi)
         print(doi_imp)
         if doi_imp is not None:
