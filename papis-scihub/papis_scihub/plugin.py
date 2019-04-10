@@ -8,21 +8,30 @@ import papis.importer
 import papis.crossref
 import tempfile
 import colorama
+import warnings
 
-WARNING_NOTICE = '''\
-{c.Style.BRIGHT}{c.Fore.RED}{c.Back.YELLOW}
-----------------------------------------------------------------------------
-|                            WARNING NOTICE:                               |
-----------------------------------------------------------------------------
-{c.Back.BLACK}
 
-This script uses the platform SCIHUB, which may or MAY NOT be in conflict with
-local laws in your country. Use it at your own risk, the author bears no
-responsibility.
 
-----------------------------------------------------------------------------
-{c.Style.RESET_ALL}
-'''.format(c=colorama)
+WARNING_NOTICE = '''
+{bb} .+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+. {ns}
+{bb}(                                                                 ){ns}
+{bb} )                    {rb} WARNING NOTICE {bb}                           \
+( {ns}
+{bb}(                     ----------------                            ){ns}
+{bb} )                                                               ( {ns}
+{bb}(  This script uses the platform {rb}SCIHUB{bb}, which may or MAY NOT     \
+){ns}
+{bb} ) be in conflict with local laws in your country. Use it at     ( {ns}
+{bb}(  your own risk, {rb}the author bears no responsibility{bb}.             \
+){ns}
+{bb} )                                                               ( {ns}
+{bb}(                                                                 ){ns}
+{bb} "+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+" {ns}\
+'''.format(
+    bb=colorama.Back.BLACK,
+    ns=colorama.Style.RESET_ALL,
+    rb=colorama.Back.RED,
+)
 class Importer(papis.importer.Importer):
 
     def __init__(self, **kwargs):
@@ -49,10 +58,12 @@ class Importer(papis.importer.Importer):
         self.get_files()
 
     def get_files(self):
+        # ignore the https warnings for scihub
+        warnings.simplefilter('ignore')
         self.logger.warning(WARNING_NOTICE)
-        sh = scihub.SciHub()
+        sh = scihub.SciHub(self.uri)
         try:
-            res = sh.fetch(self.uri)
+            res = sh.fetch()
         except scihub.CaptchaNeededException:
             curl = sh.get_captcha_url()
             assert(curl is not None)
