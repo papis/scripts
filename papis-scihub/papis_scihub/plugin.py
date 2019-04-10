@@ -1,3 +1,4 @@
+import doi
 import scihub
 import webbrowser
 import papis.importer
@@ -39,31 +40,35 @@ class Importer(papis.importer.Importer):
     @classmethod
     def match(cls, uri):
         try:
-            papis.doi.validate_doi(uri)
+            doi.validate_doi(uri)
         except ValueError:
             return None
         else:
             return Importer(uri=uri)
 
     def fetch(self):
-        doi = (
-            papis.doi.find_doi_in_text(self.uri) or
-            papis.doi.find_doi_in_text(
+        doi_str = (
+            doi.find_doi_in_text(self.uri) or
+            doi.find_doi_in_text(
                 urllib.request.urlopen(self.uri).read().decode('utf-8')
             ) or
             self.uri
         )
-        doi_imp = papis.importer.get_importer_by_name('doi').match(doi)
-        print(doi_imp)
+        ctx = self.fetch_from_doi(doi_str)
+        if ctx:
+            if ctx.data:
+                self.ctx.data = ctx.data
+            if ctx.files:
+                self.ctx.files = ctx.files
+                return
+        self.get_files()
+
+    def fetch_from_doi(self, doi_str):
+        doi_imp = papis.importer.get_importer_by_name('doi').match(doi_str)
         if doi_imp is not None:
             self.logger.info('getting data through doi')
             doi_imp.fetch()
-            if doi_imp.ctx.data:
-                self.ctx.data = doi_imp.ctx.data
-            if doi_imp.ctx.files:
-                self.ctx.files = doi_imp.ctx.files
-                return
-        self.get_files()
+            return doi_imp.ctx
 
     def get_files(self):
         # ignore the https warnings for scihub
@@ -94,3 +99,8 @@ class Importer(papis.importer.Importer):
             with open(out, 'wb+') as fd:
                 fd.write(ctx.pdf)
             self.ctx.files = [out]
+            if not self.ctx.data and ctx.doi:
+                doi_ctx = self.fetch_from_doi(ctx.doi)
+                if doi_ctx.data:
+                    self.logger.info('got data from doi {0}'.format(ctx.doi))
+                    self.ctx.data = doi_ctx.data
