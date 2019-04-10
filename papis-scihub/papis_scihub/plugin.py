@@ -1,15 +1,10 @@
-import sys
-import click
-import click.globals
 import scihub
 import webbrowser
-import logging
 import papis.importer
 import papis.crossref
 import tempfile
 import colorama
 import warnings
-
 
 
 WARNING_NOTICE = '''
@@ -25,13 +20,15 @@ WARNING_NOTICE = '''
 {bb}(  your own risk, {rb}the author bears no responsibility{bb}.             \
 ){ns}
 {bb} )                                                               ( {ns}
-{bb}(                                                                 ){ns}
+{bb}(                                           papis team            ){ns}
 {bb} "+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+" {ns}\
 '''.format(
     bb=colorama.Back.BLACK,
     ns=colorama.Style.RESET_ALL,
     rb=colorama.Back.RED,
 )
+
+
 class Importer(papis.importer.Importer):
 
     def __init__(self, **kwargs):
@@ -48,8 +45,12 @@ class Importer(papis.importer.Importer):
             return Importer(uri=uri)
 
     def fetch(self):
-        doi_imp = papis.importer.get_importer_by_name('doi').match(self.uri)
+        doi = papis.doi.find_doi_in_text(self.uri) or self.uri
+        doi_imp = papis.importer.get_importer_by_name('doi').match(doi)
+        print(doi_imp)
         if doi_imp is not None:
+            self.logger.info('getting data through doi')
+            doi_imp.fetch()
             if doi_imp.ctx.data:
                 self.ctx.data = doi_imp.ctx.data
             if doi_imp.ctx.files:
@@ -63,25 +64,26 @@ class Importer(papis.importer.Importer):
         self.logger.warning(WARNING_NOTICE)
         sh = scihub.SciHub(self.uri)
         try:
-            res = sh.fetch()
+            ctx = sh.fetch()
         except scihub.CaptchaNeededException:
             curl = sh.get_captcha_url()
             assert(curl is not None)
             assert(curl is not '')
             self.logger.warning('You have to solve the catcha in ' + curl)
             webbrowser.open(curl)
-            res = sh.fetch(self.uri)
+            ctx = sh.fetch(self.uri)
         except scihub.DocumentUrlNotFound:
             self.logger.error(
                 'Sorry, it does not appear to be possible to find and url'
                 ' for the given document using scihub'
             )
         else:
-            assert(res is not None)
-            assert(res.get('url') is not None)
-            assert(res.get('pdf') is not None)
+            assert(ctx is not None)
+            assert(ctx.url is not None)
+            assert(ctx.pdf is not None)
             out = tempfile.mktemp(suffix='.pdf')
+            self.logger.info('got file from: {0}'.format(ctx.url))
             self.logger.info('writing file in: {0}'.format(out))
             with open(out, 'wb+') as fd:
-                fd.write(res['pdf'])
+                fd.write(ctx.pdf)
             self.ctx.files = [out]
