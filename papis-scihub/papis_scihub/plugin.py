@@ -2,7 +2,6 @@ import sys
 import click
 import click.globals
 import scihub
-import papis.commands.add
 import webbrowser
 import logging
 import papis.importer
@@ -11,10 +10,11 @@ import tempfile
 import colorama
 
 WARNING_NOTICE = '''\
-{c.Back.BLACK}{c.Style.BRIGHT}{c.Fore.RED}
+{c.Style.BRIGHT}{c.Fore.RED}{c.Back.YELLOW}
 ----------------------------------------------------------------------------
-                             WARNING NOTICE:
+|                            WARNING NOTICE:                               |
 ----------------------------------------------------------------------------
+{c.Back.BLACK}
 
 This script uses the platform SCIHUB, which may or MAY NOT be in conflict with
 local laws in your country. Use it at your own risk, the author bears no
@@ -65,7 +65,6 @@ class Importer(papis.importer.Importer):
                 'Sorry, it does not appear to be possible to find and url'
                 ' for the given document using scihub'
             )
-            sys.exit(0)
         else:
             assert(res is not None)
             assert(res.get('url') is not None)
@@ -74,5 +73,4 @@ class Importer(papis.importer.Importer):
             self.logger.info('writing file in: {0}'.format(out))
             with open(out, 'wb+') as fd:
                 fd.write(res['pdf'])
-
             self.ctx.files = [out]
