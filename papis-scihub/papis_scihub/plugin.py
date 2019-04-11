@@ -81,18 +81,25 @@ class Importer(papis.importer.Importer):
         sh = scihub.SciHub(self.uri)
         try:
             ctx = sh.fetch()
-        except scihub.CaptchaNeededException:
-            curl = sh.get_captcha_url()
-            assert(curl is not None)
-            assert(curl is not '')
-            self.logger.warning('You have to solve the catcha in ' + curl)
-            webbrowser.open(curl)
-            ctx = sh.fetch(self.uri)
+        except scihub.CaptchaNeededException as e:
+            curl = e.captcha_url
+            self.logger.warning(
+                'You have to solve the catcha in \n\t'
+                '{c.Back.RED}{c.Fore.WHITE}{url}{c.Style.RESET_ALL}'
+                .format(url=curl, c=colorama)
+            )
+            self.logger.info('opening a browser for you...')
+            webbrowser.open(curl, new=1, autoraise=True)
+            if papis.utils.confirm('Try again?'):
+                ctx = sh.fetch()
         except scihub.DocumentUrlNotFound:
             self.logger.error(
                 'Sorry, it does not appear to be possible to find and url'
                 ' for the given document using scihub'
             )
+        except Exception as e:
+            print(type(e))
+            self.logger.error(e)
         else:
             assert(ctx is not None)
             assert(ctx.url is not None)
