@@ -33,6 +33,10 @@ WARNING_NOTICE = '''
 
 class Importer(papis.importer.Importer):
 
+    """Importer that tries to get files and data first from crossref,
+    and if no files are found on crossref, try to get them from scihub.
+    """
+
     def __init__(self, **kwargs):
         papis.importer.Importer.__init__(self, name='scihub', **kwargs)
         self.doi = None
