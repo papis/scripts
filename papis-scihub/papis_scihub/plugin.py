@@ -25,7 +25,7 @@ WARNING_NOTICE = '''
 {bb}(                                           papis team            ){ns}
 {bb} "+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+" {ns}\
 '''.format(
-    bb=colorama.Back.BLACK,
+    bb=colorama.Back.BLACK + colorama.Fore.WHITE,
     ns=colorama.Style.RESET_ALL,
     rb=colorama.Back.RED,
 )
