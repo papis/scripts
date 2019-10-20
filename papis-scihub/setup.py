@@ -12,7 +12,7 @@ setup(
     license='GPLv3',
     url='https://github.com/papis/scripts/tree/master/papis-scihub',
     install_requires=[
-        "papis",
+        "papis>=0.9",
         "python-doi>=0.1.0",
         "scihub>=0.0.1",
     ],

@@ -13,7 +13,7 @@ setup(
     author_email='aamsgallo@gmail.com',
     license='GPLv3',
     install_requires=[
-        "papis>=0.8.2",
+        "papis>=0.9",
     ],
     classifiers=[
         'Environment :: Console',
