@@ -32,12 +32,12 @@ def main(query, out):
 
     logger.info('Searching in database..'.format(out))
     docs = papis.api.get_documents_in_lib(
-        library=papis.api.get_lib(),
+        library=papis.api.get_lib_name(),
         search=query
     )
 
     logger.info('Saving in folder {}'.format(out))
-    bibtex_text = export(docs, bibtex=True)
+    bibtex_text = export(docs, to_format='bibtex')
 
     logger.info('template files in {}'.format(template_folder))
     shutil.copytree(
