@@ -6,13 +6,13 @@ with open('README.rst') as fd:
 
 setup(
     name='papis-html',
-    version='0.0.1',
+    version='0.1',
     author='Alejandro Gallo',
     author_email='aamsgallo@gmail.com',
     license='GPLv3',
     url='https://github.com/papis/scripts/tree/master/papis-html',
     install_requires=[
-        "papis>=0.7",
+        "papis>=0.11.1",
         "click",
     ],
     classifiers=[
@@ -45,11 +45,9 @@ setup(
             "data/js/bibtex_js.js",
         ]
     ),
-    entry_points=dict(
-        console_scripts=[
-            'papis-html=papis_html:main'
-        ]
-    ),
+    entry_points={
+        'papis.command': 'html=papis_html:main'
+    },
     packages=[
         'papis_html'
     ],
