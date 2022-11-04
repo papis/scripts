@@ -25,7 +25,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
-urls = {repository = "https://github.com/raj-magesh/papis-scihub"}
+urls = {repository = "https://github.com/papis/scripts"}
 dependencies = [
     "papis",
     "beautifulsoup4",
