@@ -4,7 +4,7 @@ This [Papis](https://github.com/papis/papis/) plugin provides a Sci-Hub `Importe
 
 ## Installation
 
-`pip install git+https://github.com/raj-magesh/papis-scihub.git`
+`pip install papis-scihub`
 
 ## Usage
 
