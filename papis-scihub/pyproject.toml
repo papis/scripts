@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papis-scihub"
+description = "Sci-Hub plugin for the Papis bibliography manager"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Raj Magesh Gauthaman", email = "rgautha1@jh.edu"}
+]
+keywords = [
+    "papis",
+    "sci-hub",
+    "bibliography",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+urls = {repository = "https://github.com/raj-magesh/papis-scihub"}
+dependencies = [
+    "papis",
+    "beautifulsoup4",
+    "python-doi",
+]
+dynamic = ["version"]
+
+[project.entry-points."papis.importer"]
+scihub = "papis_scihub.plugin:Downloader"
+
