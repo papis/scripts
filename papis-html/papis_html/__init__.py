@@ -1,56 +1,50 @@
 #! /usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-import click
-import papis.cli
-import papis.api
-from papis.commands.export import run as export
 import os
 import shutil
-import logging
 
-logger = logging.getLogger('papis-html')
-logging.basicConfig(level=logging.INFO)
+import click
+
+import papis.cli
+import papis.api
+import papis.logging
+from papis.commands.export import run as export
+
+logger = papis.logging.get_logger("papis_html")
 
 template_folder = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    'data'
+    "data"
 )
+
 
 @click.command()
 @papis.cli.query_option()
-@click.help_option('-h', '--help')
+@click.help_option("-h", "--help")
 @click.option(
-    '-o', '--out',
-    help='Output directory',
-    default='bibliography'
+    "-o", "--out",
+    help="Output directory",
+    default="html"
 )
-def main(query, out):
+def main(query: str, out: str) -> None:
     """
-    Create a simple searchable offline html site with your references
+    Create a simple searchable offline HTML site with your documents
     """
 
-    logger.info('Searching in database..'.format(out))
+    logger.info("Searching in database.")
     docs = papis.api.get_documents_in_lib(
         library=papis.api.get_lib_name(),
         search=query
     )
 
-    logger.info('Saving in folder {}'.format(out))
-    bibtex_text = export(docs, to_format='bibtex')
+    bibtex_text = export(docs, to_format="bibtex")
 
-    logger.info('template files in {}'.format(template_folder))
-    shutil.copytree(
-        template_folder,
-        out
-    )
+    shutil.copytree(template_folder, out)
+    logger.info("Template files copied from '%s'", template_folder)
+    logger.info("Saving in folder '%s'.", out)
 
-    bibtex_outfile = os.path.join(out, 'library.bib')
-    logger.info('Creating bib file in {}'.format(bibtex_outfile))
-    with open(bibtex_outfile, 'w+') as fd:
+    bibtex_outfile = os.path.join(out, "papis-html-library.bib")
+    with open(bibtex_outfile, "w+") as fd:
         fd.write(bibtex_text)
 
-    logger.info('Done!')
-
-if __name__ == "__main__":
-    main()
+    logger.info("Created BibTex file: '%s'.", bibtex_outfile)
