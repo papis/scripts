@@ -1,7 +1,6 @@
-﻿
 /* 
  * Author = Philip Cooksey
- * Edited = July 2018
+ * Edited = September 2018
  * Website = https://github.com/pcooksey/bibtex-js
  * Credit = Henrik Mühe
  *
@@ -227,7 +226,7 @@ function BibtexParser() {
         } else if (directive == "@TECHREPORT") {
             this.entries[this.currentEntry]["BIBTEXTYPE"] = "technical report";
         }
-        this.entries[this.currentEntry]["BIBTEXTYPEKEY"] = directive;
+        this.entries[this.currentEntry]["BIBTEXTYPEKEY"] = directive.substr(1);
         this.match(",");
         this.key_value_list();
     }
@@ -355,83 +354,81 @@ function BibtexDisplay() {
         var name = ["", "", "", "", ""];
         // check how many elements in array 1, 2, or 3
         switch (array.length) {
-            case 1:
-                {
-                    // Split by spaces keeping {names names} together
-                    var words = array[0].split(/\ \s?(?![^\{]*\})/);
-                    // Get first name
-                    var index = 0;
-                    for (; index < words.length - 1; index++) {
-                        var space = (index > 0) ? " " : "";
-                        if (words[index][0] == '{') {
-                            if (words[index][1] == '\\') {
-                                words[index] = this.fixValue(words[index]);
-                                // Test below
-                            } else {
-                                name[0] += space + this.fixValue(words[index]);
-                                continue;
-                            }
-                        }
-                        if (words[index][0] == words[index][0].toUpperCase()) {
-                            name[0] += space + this.fixValue(words[index]);
+            case 1: {
+                // Split by spaces keeping {names names} together
+                var words = array[0].split(/\ \s?(?![^\{]*\})/);
+                // Get first name
+                var index = 0;
+                for (; index < words.length - 1; index++) {
+                    var space = (index > 0) ? " " : "";
+                    if (words[index][0] == '{') {
+                        if (words[index][1] == '\\') {
+                            words[index] = this.fixValue(words[index]);
+                            // Test below
                         } else {
-                            break; //von part
+                            name[0] += space + this.fixValue(words[index]);
+                            continue;
                         }
                     }
-                    // Get von part forward look for last non uppercase
-                    var lastVon = index;
-                    for (var temp = index; temp < words.length - 1; temp++) {
-                        if (words[temp][0] == words[temp][0].toLowerCase()) {
-                            lastVon = temp;
-                        }
-                    }
-                    for (; index <= lastVon && index < words.length - 1; index++) {
-                        var space = (name[2] != "") ? " " : "";
-                        name[2] += space + this.fixValue(words[index]);
-                    }
-                    // Get last name
-                    for (; index < words.length; index++) {
-                        var space = (name[3] != "") ? " " : "";
-                        name[3] += space + this.fixValue(words[index]);
+                    if (words[index][0] == words[index][0].toUpperCase()) {
+                        name[0] += space + this.fixValue(words[index]);
+                    } else {
+                        break; //von part
                     }
                 }
-                break;
-            case 2:
-            case 3:
-                {
-                    var arrayIndex = 0;
-                    // Split by spaces keeping {names names} together
-                    var words = array[arrayIndex].split(/\ \s?(?![^\{]*\})/);
-                    var index = 0;
-                    // Get von part forward look for last non uppercase
-                    var lastVon = -1;
-                    for (var temp = index; temp < words.length - 1; temp++) {
-                        if (words[temp][0] == words[temp][0].toLowerCase()) {
-                            lastVon = temp;
-                        }
+                // Get von part forward look for last non uppercase
+                var lastVon = index;
+                for (var temp = index; temp < words.length - 1; temp++) {
+                    if (words[temp][0] == words[temp][0].toLowerCase()) {
+                        lastVon = temp;
                     }
-                    for (; index <= lastVon && index < words.length - 1; index++) {
-                        var space = (name[2] != "") ? " " : "";
-                        name[2] += space + this.fixValue(words[index]);
-                    }
-                    // Get last name
-                    for (; index < words.length; index++) {
-                        var space = (name[3] != "") ? " " : "";
-                        name[3] += space + this.fixValue(words[index]);
-                    }
-                    arrayIndex++;
-                    // Check if there is a Jr. part
-                    if (array.length == 3) {
-                        name[1] = this.fixValue(array[arrayIndex]);
-                        arrayIndex++;
-                    }
-                    // Get first name
-                    name[0] = this.fixValue(array[arrayIndex]);
                 }
-                break;
-            default:
-                console.log("Processed author incorrectly!");
-                return name;
+                for (; index <= lastVon && index < words.length - 1; index++) {
+                    var space = (name[2] != "") ? " " : "";
+                    name[2] += space + this.fixValue(words[index]);
+                }
+                // Get last name
+                for (; index < words.length; index++) {
+                    var space = (name[3] != "") ? " " : "";
+                    name[3] += space + this.fixValue(words[index]);
+                }
+            }
+            break;
+        case 2:
+        case 3: {
+            var arrayIndex = 0;
+            // Split by spaces keeping {names names} together
+            var words = array[arrayIndex].split(/\ \s?(?![^\{]*\})/);
+            var index = 0;
+            // Get von part forward look for last non uppercase
+            var lastVon = -1;
+            for (var temp = index; temp < words.length - 1; temp++) {
+                if (words[temp][0] == words[temp][0].toLowerCase()) {
+                    lastVon = temp;
+                }
+            }
+            for (; index <= lastVon && index < words.length - 1; index++) {
+                var space = (name[2] != "") ? " " : "";
+                name[2] += space + this.fixValue(words[index]);
+            }
+            // Get last name
+            for (; index < words.length; index++) {
+                var space = (name[3] != "") ? " " : "";
+                name[3] += space + this.fixValue(words[index]);
+            }
+            arrayIndex++;
+            // Check if there is a Jr. part
+            if (array.length == 3) {
+                name[1] = this.fixValue(array[arrayIndex]);
+                arrayIndex++;
+            }
+            // Get first name
+            name[0] = this.fixValue(array[arrayIndex]);
+        }
+        break;
+        default:
+            console.log("Processed author incorrectly!");
+            return name;
         }
         if (name[0] != "") {
             name[4] = name[0].split(" ").map((s) => s.substring(0, 1).toUpperCase()).join(". ") + ".";
@@ -457,40 +454,40 @@ function BibtexDisplay() {
         if (format.attr("max")) {
             searchLength = Math.min(format.attr("max"), searchLength);
         }
-        // Check if authors are formatted
+
+        // Get conjunction if set in author
+        conjunction = format.attr('conjunction') ? format.attr('conjunction') : ', and';
+        conjunction = "<span class='bibtex_js_conjunction'>" + conjunction + "</span>";
+
         var newString = "";
-        if (format.find("span:not(a)").length) {
-            for (i = 0; i < searchLength; i++) {
-                // Split string by ',' keeping {words, and words} together
-                var name = this.getName(arrayString[i].split(/\,\s?(?![^\{]*\})/));
-                var author = format.clone();
-                var fullName = $.grep(name.slice(0, 4), Boolean).join(" ");
-                author.attr('class', fullName);
-                author.find("span:not(a)").each(function() {
-                    var index = Format[$(this).attr('class').toUpperCase()];
-                    // Check if value is empty
-                    if (name[index] != "") {
-                        $(this).html($(this).html() + name[index]);
+        for (i = 0; i < searchLength; i++) {
+            // Split string by ',' keeping {words, and words} together
+            var name = this.getName(arrayString[i].split(/\,\s?(?![^\{]*\})/));
+            var author = format.clone();
+            var fullName = $.grep(name.slice(0, 4), Boolean).join(" ");
+            author.attr('class', fullName);
+            var textBefore = false;
+            for (j = 0, ele = author.find("span:not(a)"), len = ele.length; j < len; ++j) {
+                var index = Format[ele[j].getAttribute("class").toUpperCase()];
+                // Check if value is empty
+                if (name[index] != "") {
+                    if (ele[j].hasAttribute("bibtex-js-rif") && !textBefore) {
+                        ele[j].textContent = name[index];
                     } else {
-                        $(this).remove();
+                        ele[j].textContent = ele[j].textContent + name[index];
                     }
-                });
-                if (i == 0) {
-                    newString += author[0].outerHTML;
-                } else if (i + 1 >= arrayString.length) {
-                    newString += ", and " + author[0].outerHTML;
+                    textBefore = true;
                 } else {
-                    newString += ", " + author[0].outerHTML;
+                    ele[j].remove();
                 }
+
             }
-        } else {
-            newString = arrayString[0];
-            for (i = 1; i < searchLength; i++) {
-                if (i + 1 >= arrayString.length) {
-                    newString += ", and " + arrayString[i];
-                } else {
-                    newString += ", " + arrayString[i];
-                }
+            if (i == 0) {
+                newString += author[0].outerHTML;
+            } else if (i + 1 >= arrayString.length) {
+                newString += conjunction + " " + author[0].outerHTML;
+            } else {
+                newString += ", " + author[0].outerHTML;
             }
         }
         // Checking if et al. must be added
@@ -505,10 +502,15 @@ function BibtexDisplay() {
 
     this.createTemplate = function(entry, output) {
         // Check if bibtex keys are limiting output (bibtexkeys="key1|key2|...|keyN")
-        if (output[0].hasAttribute("bibtexkeys")) {
-            var bitexkeys = output[0].getAttribute("bibtexkeys");
-            if (!entry["BIBTEXKEY"].match(bitexkeys))
-                return null;
+        if (output[0].attributes.length > 1) {
+            for (var i = 0, attrs = output[0].attributes, n = attrs.length; i < n; ++i) {
+                var name = attrs[i].nodeName.toUpperCase();
+                var value = attrs[i].nodeValue;
+                if (name in entry) {
+                    if (!entry[name].match(value))
+                        return null;
+                }
+            }
         }
 
         // find template
@@ -519,6 +521,10 @@ function BibtexDisplay() {
         for (var key in entry) {
             keys.push(key.toUpperCase());
         }
+
+        // Regex
+        var orRegExp = new RegExp('\\s*[\\|\\|]\\s*', "gi"); // split by "||"
+        var eqRegExp = new RegExp('\\s*==\\s*', "gi"); // split by "=="
 
         // find all ifs and check them
         var removed = false;
@@ -532,20 +538,29 @@ function BibtexDisplay() {
             // check if
             var cond = conds.first();
             cond.removeClass("if");
-            var ifTrue = true;
-            var classList = cond.attr('class').split(' ');
+            var keepIf = false;
+            var classList = cond.attr('class').split(orRegExp);
+            var self = this;
             $.each(classList, function(index, cls) {
-                if (cls[0] == "!" &&
-                    keys.indexOf(cls.substring(1, cls.length).toUpperCase()) < 0) {
-                    ifTrue = true;
-                } else if (keys.indexOf(cls.toUpperCase()) < 0) {
-                    ifTrue = false;
+                var equation = cls.split(eqRegExp);
+                if (equation.length == 2) {
+                    if (keys.indexOf(equation[0].toUpperCase()) > 0 &&
+                        self.fixValue(entry[equation[0].toUpperCase()]) == equation[1]) {
+                        keepIf |= true;
+                    }
+                } else {
+                    if (cls[0] == "!" &&
+                        keys.indexOf(cls.substring(1, cls.length).toUpperCase()) < 0) {
+                        keepIf |= true;
+                    } else if (keys.indexOf(cls.toUpperCase()) > 0) {
+                        keepIf |= true;
+                    }
                 }
                 cond.removeClass(cls);
             });
 
             // remove false ifs
-            if (!ifTrue) {
+            if (!keepIf) {
                 cond.remove();
             }
         } while (true);
@@ -553,9 +568,13 @@ function BibtexDisplay() {
         tpl.find('.bibtexVar').each(function() {
             var key = $(this).attr("extra").toUpperCase();
             var regEx = new RegExp('\\+' + key + '\\+', "gi");
+            var entryValue = entry[key];
+            if ($(this)[0].hasAttribute("bibtexjs-css-escape")) {
+                entryValue = entryValue.replace(/[\!\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\[\\\]\^\`\{\|\}\~ ]/g, '\\$&');
+            }
             $.each(this.attributes, function(i, attrib) {
                 var value = attrib.value;
-                value = value.replace(regEx, entry[key]);
+                value = value.replace(regEx, entryValue);
                 attrib.value = value;
             });
         });
@@ -573,7 +592,8 @@ function BibtexDisplay() {
 
             if (key == "AUTHOR") {
                 var format = tpl.find("span:not(a)." + key.toLowerCase());
-                value = this.displayAuthor(value, format);
+                if (format.length)
+                    value = this.displayAuthor(value, format);
             } else if (key == "PAGES") {
                 value = value.replace("--", "-");
             } else if (key == "DATE") {
@@ -612,6 +632,25 @@ function BibtexDisplay() {
             // Need to check if values exist
             aValue = (keyUpper in a) ? a[keyUpper] : "";
             bValue = (keyUpper in b) ? b[keyUpper] : "";
+            // `year` and `date` fall back to each other.
+            if (keyUpper == "DATE") {
+                var getDateFromYearMonth = x => {
+                    return ((("MONTH" in x) ? x["MONTH"] : "Jan") +
+                        " 1, " +
+                        (("YEAR" in x) ? x["YEAR"] : "1900"));
+                };
+                if (!aValue) aValue = getDateFromYearMonth(a);
+                if (!bValue) bValue = getDateFromYearMonth(b);
+            } else if (keyUpper == "YEAR") {
+                var getYearFromDate = x => {
+                    if ("DATE" in x) {
+                        return moment(x["DATE"]).format("YYYY");
+                    }
+                    return "";
+                }
+                if (!aValue) aValue = getYearFromDate(a);
+                if (!bValue) bValue = getYearFromDate(b);
+            }
             switch (rule.toUpperCase()) {
                 case "DESC":
                     //Values remain the same
@@ -686,6 +725,7 @@ function BibtexDisplay() {
                 var header = newStruct.children("." + groupName.toLowerCase()).first().find(".title");
                 if (header.length) {
                     header.prepend(this.fixValue(groupNameValue));
+                    header.attr("id", this.fixValue(groupNameValue));
                 } else {
                     newStruct.children("." + groupName.toLowerCase()).first().prepend("<h" + (level + 1) + " class='" +
                         groupName + "' id=\"" + groupNameValue + "\">" + this.fixValue(groupNameValue) + "</h" + (level + 1) + ">");
@@ -807,6 +847,10 @@ function BibtexDisplay() {
                     if (tpl) {
                         structure.find(".templates").append(tpl);
                         tpl.show();
+                        if (tpl.attr("callback")) {
+                            var callback = new Function('bibtexentry', tpl.attr("callback"));
+                            callback(tpl[0]);
+                        }
                     }
                 }
             }
@@ -818,7 +862,12 @@ function BibtexDisplay() {
         // parse bibtex input
         var b = new BibtexParser();
         b.setInput(input);
-        b.bibtex();
+        try {
+            b.bibtex();
+        } catch (e) {
+            b.errorThrown(e);
+            console.error(e);
+        }
         var entries = b.getEntries();
 
         // save old entries to remove them later
@@ -840,6 +889,10 @@ function BibtexDisplay() {
                 if (tpl) {
                     output.append(tpl);
                     tpl.show();
+                    if (tpl.attr("callback")) {
+                        var callback = new Function('bibtexentry', tpl.attr("callback"));
+                        callback(tpl[0]);
+                    }
                 }
             }
         }
@@ -851,40 +904,57 @@ function BibtexDisplay() {
 
 function bibtex_js_draw() {
     $(".bibtex_template").hide();
+    //Gets the BibTex files and adds them together
+    var bibstring = "";
+    var requests = [];
     if ($("#bibtex_input").length) {
-        (new BibtexDisplay()).displayBibtex($("#bibtex_input").val(), $("#bibtex_display"));
-    } else {
-        //Gets the BibTex files and adds them together
-        var bibstring = "";
-        var requests = [];
-        // Create request for bibtex files
-        $('bibtex').each(function(index, value) {
-            var request = $.ajax({
-                    url: $(this).attr('src'),
-                    dataType: "text"
-                })
-                .done((data) => bibstring += data)
-                .fail((request, status, error) => console.error(error))
-            requests.push(request);
-        });
-
-        // Executed on completion of last outstanding ajax call
-        $.when.apply($, requests).then(function() {
-            // Check if we have a bibtex_display id or classes
-            if ($("#bibtex_display").length) {
-                (new BibtexDisplay()).displayBibtex(bibstring, $("#bibtex_display"));
-            } else if ($(".bibtex_display").length) {
-                // Loop through all bibtex_displays on the page
-                $(".bibtex_display").each(function(index) {
-                    // ($this) is the class node output for the bitex entries
-                    (new BibtexDisplay()).displayBibtex(bibstring, $(this));
-                });
-            }
-            loadExtras();
-            // Remove elements from html that are not needed to display
-            $(".bibtex_structure").remove();
-        });
+        bibstring += $("#bibtex_input").val();
     }
+    // Create request for bibtex files
+    $('bibtex').each(function(index, value) {
+        var request = $.ajax({
+                url: $(this).attr('src'),
+                dataType: "text"
+            })
+            .done((data) => bibstring += data)
+            .fail((request, status, error) => console.error(error))
+        requests.push(request);
+    });
+    // Add default author format if it doesn't exist
+    var authorFormat = $(".bibtex_template").find("span:not(a).author");
+    if (authorFormat.length && !authorFormat.find("span:not(a)").length) {
+        authorFormat.append($("<span></span>").attr("class", "first"));
+        authorFormat.append($("<span></span>").attr("class", "von")
+            .attr("bibtex-js-rif", "").text(" "));
+        authorFormat.append($("<span></span>").attr("class", "last")
+            .attr("bibtex-js-rif", "").text(" "));
+        authorFormat.append($("<span></span>").attr("class", "junior").text(", "));
+    }
+    // Executed on completion of last outstanding ajax call
+    $.when.apply($, requests).then(function() {
+        // Check if we have a bibtex_display id or classes
+        if ($("#bibtex_display").length) {
+            var bibtex_display = $("#bibtex_display");
+            (new BibtexDisplay()).displayBibtex(bibstring, bibtex_display);
+            if (bibtex_display.attr("callback")) {
+                var callback = new Function('bibtex_display', bibtex_display.attr("callback"));
+                callback(bibtex_display[0]);
+            }
+        } else if ($(".bibtex_display").length) {
+            // Loop through all bibtex_displays on the page
+            $(".bibtex_display").each(function(index) {
+                // ($this) is the class node output for the bitex entries
+                (new BibtexDisplay()).displayBibtex(bibstring, $(this));
+                if ($(this).attr("callback")) {
+                    var callback = new Function('bibtex_display', $(this).attr("callback"));
+                    callback($(this)[0]);
+                }
+            });
+        }
+        // Remove elements from html that are not needed to display
+        $(".bibtex_structure").remove();
+        loadExtras();
+    });
 }
 
 /** 
@@ -1049,8 +1119,15 @@ function createWebPage(defaultTemplate) {
 
 function loadExtras() {
     BibTeXSearcherClass = new BibTeXSearcher();
-    $(".bibtex_author").each(function(i, obj) {
-        authorList($(this));
+    // Generate all search lists
+    $("select").each(function() {
+        for (var i = 0, l = this.classList.length; i < l; ++i) {
+            var checkRegEx = this.classList[i].match(/bibtex_generate_(.*)/);
+            if (checkRegEx) {
+                var field = checkRegEx[1];
+                generateList($(this), field);
+            }
+        }
     });
 
     localStorage.removeItem("customerDatabase");
@@ -1074,7 +1151,7 @@ function loadExtras() {
         $(this).keyup(function() {
             combineSearcher(BibTeXSearcherClass);
         });
-        if ($(this).val() != "") {
+        if (obj.length > 0 && $(this).val() != "") {
             combineSearcher(BibTeXSearcherClass, true);
         }
     });
@@ -1107,37 +1184,77 @@ function combineSearcher(searcherClass, needToRestart) {
     searcherClass.searcher(string, needToRestart);
 }
 
-function authorList(object) {
+function generateList(object, bibtexField) {
     var map = new Object();
-    $("span.author").each(function(i, obj) {
-        arrayString = $(this).text().split(new RegExp(",[\\s]+and[\\s]+|,[\\s]+"));
-        if (object.attr("extra") == "first") {
-            map[arrayString[0]] = 1;
-        } else {
-            for (i = 0; i < arrayString.length; i++) {
+    var displayTuples = [];
+    if (bibtexField == "author") {
+        $(".bibtexentry span.author").each(function(i, obj) {
+            authors = $(this).children("span:not(.bibtex_js_conjunction)");
+            authorLength = authors.length;
+            if (object.attr("extra") == "first") {
+                authorLength = 1;
+            }
+            for (i = 0; i < authorLength; i++) {
+                if (authors[i].innerText in map) {
+                    map[authors[i].innerText][0] += 1;
+                } else {
+                    var strName = "";
+                    var nameSplit = authors[i].className.split(" ");
+                    var lastName = nameSplit.pop();
+                    if (nameSplit.length >= 1) {
+                        strName = lastName + ", " + nameSplit.join(" ");
+                    } else {
+                        strName = lastName;
+                    }
+                    map[authors[i].innerText] = [1, strName, lastName];
+                }
+            }
+        });
+        for (var key in map) {
+            var lastName = map[key][2];
+            displayTuples.push([lastName.toLowerCase(), //Last name
+                key, // Full name
+                map[key][1], //Print
+                map[key][0]
+            ]); //Count
+        }
+    } else {
+        $(".bibtexentry span." + bibtexField).each(function(i, obj) {
+            arrayString = [$(this).text()];
+            if (object[0].hasAttribute("bibtex_split_by")) {
+                arrayString = arrayString[0].split(object.attr("bibtex_split_by"));
+            }
+            for (i = 0; i < arrayString.length; ++i) {
                 if (arrayString[i] in map) {
                     map[arrayString[i]] += 1;
                 } else {
                     map[arrayString[i]] = 1;
                 }
             }
+        });
+        for (var key in map) {
+            displayTuples.push([key, key, key, map[key]]);
         }
-    });
+    }
 
-    var tuples = [];
-    for (var key in map) tuples.push([key, key.split(" ").pop().toLowerCase()]);
+    var options = {};
+    var optionStr = object.attr("bibtex_sort_options");
+    if (optionStr !== undefined) {
+        var properties = optionStr.split(",").map(item => item.trim());
+        properties.forEach(function(property) {
+            var tup = property.split(':');
+            options[tup[0]] = tup[1];
+        });
+    }
 
-    tuples.sort(function(a, b) {
-        a = a[1];
-        b = b[1];
-        return a < b ? -1 : (a > b ? 1 : 0);
-    });
+    displayTuples.sort((a, b) =>
+        a[0].localeCompare(b[0],
+            object.attr("bibtex_sort_language"),
+            options));
 
-    for (var i = 0; i < tuples.length; i++) {
-        var key = tuples[i][0];
-        var value = tuples[i][1];
-        var array = key.split(" ");
-        var text = array.pop() + ", " + array.join(" ");
+    for (var i = 0; i < displayTuples.length; i++) {
+        var key = displayTuples[i][1];
+        var text = displayTuples[i][2];
         object.append($("<option></option>").attr("value", key).text(text));
     }
 }
@@ -1165,7 +1282,7 @@ if (!window.jQuery || !window.moment) {
         //Add moment to the webpage for dates
         var mo = document.createElement('script');
         mo.type = 'text/javascript';
-        mo.src = 'https://rawgit.com/moment/moment/2.22.2/min/moment.min.js';
+        mo.src = 'https://cdn.jsdelivr.net/gh/moment/moment@2.22.2/min/moment.min.js';
         document.getElementsByTagName('head')[0].appendChild(mo);
     }
 
