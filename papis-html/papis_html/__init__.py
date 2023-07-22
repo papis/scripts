@@ -19,7 +19,7 @@ template_folder = os.path.join(
 
 
 @click.command()
-@papis.cli.query_option()
+@papis.cli.query_argument()
 @click.help_option("-h", "--help")
 @click.option(
     "-o", "--out",
@@ -30,6 +30,8 @@ def main(query: str, out: str) -> None:
     """
     Create a simple searchable offline HTML site with your documents
     """
+    if os.path.exists(out):
+        logger.error("Output directory '%s' already exists.", out)
 
     logger.info("Searching in database.")
     docs = papis.api.get_documents_in_lib(
@@ -40,7 +42,7 @@ def main(query: str, out: str) -> None:
     bibtex_text = export(docs, to_format="bibtex")
 
     shutil.copytree(template_folder, out)
-    logger.info("Template files copied from '%s'", template_folder)
+    logger.info("Template files copied from '%s'.", template_folder)
     logger.info("Saving in folder '%s'.", out)
 
     bibtex_outfile = os.path.join(out, "papis-html-library.bib")
