@@ -8,12 +8,12 @@ help: 								## Show this help
 	@echo ""
 .PHONY: help
 
-ci-install:
-	$(PYTHON) -m pip install --upgrade pip setuptools wheel
-	$(PYTHON) -m pip install -e .[develop]
+ci-install:  						## Install all development dependencies
+	$(PYTHON) -m pip install --upgrade pip hatchling editables wheel
+	$(PYTHON) -m pip install --verbose --editable '.[develop]'
 .PHONY: ci-install
 
-ci-lint:
+ci-lint:							## Run linting
 	python -m flake8 papis_html
 	python -m mypy --show-error-codes papis_html
 .PHONY: ci-lint
@@ -27,4 +27,3 @@ tags:								## Generate ctags for main codebase
 		--language-force=python \
 		papis
 .PHONY: tags
-
