@@ -96,9 +96,8 @@ class Downloader(papis.downloaders.Downloader):
 
 def _extract_doi(url: str) -> str:
     parsed_url = urlparse(url)
-    if parsed_url.netloc:
-        if "doi.org" in parsed_url.netloc:
-            doi_ = doi.find_doi_in_text(url)
+    if parsed_url.netloc and "doi.org" in parsed_url.netloc:
+        doi_ = doi.find_doi_in_text(url)
     else:
         doi_ = url
     try:
