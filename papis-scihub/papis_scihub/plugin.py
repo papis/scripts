@@ -1,10 +1,11 @@
 from urllib.parse import urlparse
-from typing import Optional
+from typing import Optional, override
 from requests.exceptions import RequestException
 
 import doi
 import papis.downloaders
 from bs4 import BeautifulSoup
+import bs4
 
 import colorama
 
@@ -46,6 +47,7 @@ class Downloader(papis.downloaders.Downloader):
         self.bibtex_data = ""
 
     @classmethod
+    @override
     def match(cls, url: str) -> Optional[papis.downloaders.Downloader]:
         try:
             _extract_doi(url)
@@ -73,20 +75,25 @@ class Downloader(papis.downloaders.Downloader):
         self.logger.debug(f"server {base_url} is up")
         return True
 
+    @override
     def get_doi(self) -> Optional[str]:
         return self.doi
 
+    @override
     def get_document_url(self) -> Optional[str]:
         soup = BeautifulSoup(self._body.content, "html.parser")
         iframe = soup.find("iframe")
-        if not iframe:
+        if iframe is None:
             return None
+        assert isinstance(iframe, bs4.Tag)
 
         src = iframe.get("src")
-        if src.startswith("//"):
+        assert not isinstance(src, list)
+        if src is not None and src.startswith("//"):
             src = f"https:{src}"
         return src
 
+    @override
     def download_bibtex(self) -> None:
         self.bibtex_data = self.session.get(
             f"https://doi.org/{self.doi}",
@@ -101,6 +108,8 @@ def _extract_doi(url: str) -> str:
     else:
         doi_ = url
     try:
+        if doi_ is None:
+            raise ValueError
         doi.validate_doi(doi_)
         return doi_
     except ValueError as err:
