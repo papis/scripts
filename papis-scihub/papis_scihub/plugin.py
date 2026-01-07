@@ -1,13 +1,13 @@
-import doi
-import scihub
-import webbrowser
-import papis.importer
-import papis.crossref
-import tempfile
-import colorama
-import warnings
-import urllib.request
+from urllib.parse import urlparse
+from typing import Optional, override
+from requests.exceptions import RequestException
 
+import doi
+import papis.downloaders
+from bs4 import BeautifulSoup
+import bs4
+
+import colorama
 
 WARNING_NOTICE = '''
 {bb} .+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+.+"+. {ns}
@@ -30,88 +30,88 @@ WARNING_NOTICE = '''
     rb=colorama.Back.RED,
 )
 
+BASE_URLS = (f"http://sci-hub.{tld}" for tld in ["ee","se","st","ru"])
 
-class Importer(papis.importer.Importer):
-
-    """Importer that tries to get files and data first from crossref,
-    and if no files are found on crossref, try to get them from scihub.
-    """
-
-    def __init__(self, **kwargs):
-        papis.importer.Importer.__init__(self, name='scihub', **kwargs)
-        self.doi = None
+class Downloader(papis.downloaders.Downloader):
+    def __init__(self, uri: str) -> None:
+        self.logger.warning(WARNING_NOTICE)
+        papis.downloaders.Downloader.__init__(self, uri=uri, name="sci-hub")
+        self.expected_document_extension = "pdf"
+        self.priority = 1
+        self._get_active_server_url()
+        self.doi = _extract_doi(uri)
+        self._body = self.session.get(
+            f"{self.base_url}/{self.doi}",
+            verify=False
+        )
+        self.bibtex_data = ""
 
     @classmethod
-    def match(cls, uri):
+    @override
+    def match(cls, url: str) -> Optional[papis.downloaders.Downloader]:
         try:
-            doi.validate_doi(uri)
-        except ValueError:
+            _extract_doi(url)
+            return Downloader(url)
+        except (RequestException, ValueError):
             return None
-        else:
-            return Importer(uri=uri)
 
-    def fetch(self):
-        doi_str = (
-            doi.find_doi_in_text(self.uri) or
-            doi.find_doi_in_text(
-                urllib.request.urlopen(self.uri).read().decode('utf-8')
-            ) or
-            self.uri
-        )
-        ctx = self.fetch_from_doi(doi_str)
-        if ctx:
-            if ctx.data:
-                self.ctx.data = ctx.data
-            if ctx.files:
-                self.ctx.files = ctx.files
+    def _get_active_server_url(self) -> None:
+        for base_url in BASE_URLS:
+            if self._ping_server(base_url):
+                self.base_url = base_url
                 return
-        self.get_files()
+        raise RequestException("No Sci-Hub servers can be pinged")
 
-    def fetch_from_doi(self, doi_str):
-        doi_imp = papis.importer.get_importer_by_name('doi').match(doi_str)
-        if doi_imp is not None:
-            self.logger.info('getting data through doi')
-            doi_imp.fetch()
-            return doi_imp.ctx
-
-    def get_files(self):
-        # ignore the https warnings for scihub
-        warnings.simplefilter('ignore')
-        self.logger.warning(WARNING_NOTICE)
-        sh = scihub.SciHub(self.uri)
+    def _ping_server(self, base_url: str) -> bool:
         try:
-            ctx = sh.fetch()
-        except scihub.CaptchaNeededException as e:
-            curl = e.captcha_url
-            self.logger.warning(
-                'You have to solve the catcha in \n\t'
-                '{c.Back.RED}{c.Fore.WHITE}{url}{c.Style.RESET_ALL}'
-                .format(url=curl, c=colorama)
-            )
-            self.logger.info('opening a browser for you...')
-            webbrowser.open(curl, new=1, autoraise=True)
-            if papis.utils.confirm('Try again?'):
-                ctx = sh.fetch()
-        except scihub.DocumentUrlNotFound:
-            self.logger.error(
-                'Sorry, it does not appear to be possible to find and url'
-                ' for the given document using scihub'
-            )
-        except Exception as e:
-            print(type(e))
-            self.logger.error(e)
-        else:
-            assert(ctx is not None)
-            assert(ctx.url is not None)
-            assert(ctx.pdf is not None)
-            out = tempfile.mktemp(suffix='.pdf')
-            self.logger.info('got file from: {0}'.format(ctx.url))
-            self.logger.info('writing file in: {0}'.format(out))
-            with open(out, 'wb+') as fd:
-                fd.write(ctx.pdf)
-            self.ctx.files = [out]
-            if not self.ctx.data and ctx.doi:
-                doi_ctx = self.fetch_from_doi(ctx.doi)
-                if doi_ctx.data:
-                    self.logger.info('got data from doi {0}'.format(ctx.doi))
-                    self.ctx.data = doi_ctx.data
+            ping = self.session.get(base_url, timeout=1, verify=False)
+        except RequestException:
+            return False
+
+        if ping.status_code != 200:
+            self.logger.error(f"server {base_url} is down")
+            return False
+
+        self.logger.debug(f"server {base_url} is up")
+        return True
+
+    @override
+    def get_doi(self) -> Optional[str]:
+        return self.doi
+
+    @override
+    def get_document_url(self) -> Optional[str]:
+        soup = BeautifulSoup(self._body.content, "html.parser")
+        iframe = soup.find("iframe")
+        if iframe is None:
+            return None
+        assert isinstance(iframe, bs4.Tag)
+
+        src = iframe.get("src")
+        assert not isinstance(src, list)
+        if src is not None and src.startswith("//"):
+            src = f"https:{src}"
+        return src
+
+    @override
+    def download_bibtex(self) -> None:
+        self.bibtex_data = self.session.get(
+            f"https://doi.org/{self.doi}",
+            headers={"accept": "application/x-bibtex"}
+        ).text
+
+
+def _extract_doi(url: str) -> str:
+    parsed_url = urlparse(url)
+    if parsed_url.netloc and "doi.org" in parsed_url.netloc:
+        doi_ = doi.find_doi_in_text(url)
+    else:
+        doi_ = url
+    try:
+        if doi_ is None:
+            raise ValueError
+        doi.validate_doi(doi_)
+        return doi_
+    except ValueError as err:
+        raise ValueError(
+            f"Cannot extract a valid DOI from the provided URL: {url}") from err

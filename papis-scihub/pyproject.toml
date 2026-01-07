@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools"]
+#requires = ["setuptools", "setuptools-scm"]
+#build-backend = "setuptools.build_meta"
+
+#[tool.setuptools_scm]
+
+[project]
+name = "papis-scihub"
+description = "Sci-Hub plugin for the Papis bibliography manager"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "GPL-3.0-only"}
+authors = [
+    {name = "Gesh", email = "gesh@gesh.uni.cx"},
+    {name = "Raj Magesh Gauthaman", email = "rgautha1@jh.edu"},
+    {name = "Alejandro Gallo", email = "aamsgallo@gmail.com"}
+]
+keywords = [
+    "papis",
+    "sci-hub",
+    "scihub",
+    "bibliography",
+    "bibtex",
+    "management",
+    "cli",
+]
+classifiers = [
+    "Environment :: Console",
+    "Environment :: Console :: Curses",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Natural Language :: English",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+urls = {repository = "https://github.com/papis/scripts"}
+dependencies = [
+    "papis>=0.9",
+    "beautifulsoup4>=4.11.0",
+    "python-doi>=0.1.0",
+]
+
+version = "1.4.0"
+#dynamic = ["version"]
+
+[project.entry-points."papis.importer"]
+scihub = "papis_scihub.plugin:Downloader"
+
