@@ -1,29 +1,26 @@
 .. image:: https://badge.fury.io/py/papis-html.svg
     :target: https://badge.fury.io/py/papis-html
 
-Papis-HTML
+papis-html
 ==========
-
-::
-
-  Usage: papis-html [OPTIONS] [QUERY]
-
-    Create a simple searchable offline html site with your references
-
-  Options:
-    -h, --help  Show this message and exit.
-    --out TEXT  Output directory
 
 For instance, doing
 
-::
+.. code:: sh
 
-  papis html einstein -o einstein-papers
+    papis html einstein -o einstein-papers
 
-will get you a directory ``einstein-papers`` with a website inside.
+will get you a directory ``einstein-papers`` with a website inside. This website
+uses local files, so may not work directly when opened in a modern browser
+(due to XSS precautions). You can start a simple web server in the generated
+directory with
 
-You can find an example in
-`here <https://papis.github.io/papis-html/einstein/>`_.
+.. code:: sh
+
+    python -m http.server -d einstein-papers -b 127.0.0.1 8000
+    firefox 127.0.0.1:8000
+
+You can find an example `here <https://papis.github.io/papis-html/einstein/>`__.
 
 Acknowledgements
 ================
